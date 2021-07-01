@@ -2,6 +2,7 @@
 #/usr/bin/python3
 
 from enum import Enum
+from eulxml import xmlmap
 import sys
 import argparse
 import datetime
@@ -82,8 +83,10 @@ if __name__ == "__main__":
             else: 
                 reflection = input("enter reflection: ")
                 report.recordMessage(custom_day, reflection)
+        
         elif cmd == 'e':
             print("emailing supervisor")
+
         elif cmd == 'f':
             print("finishing documentation")
         elif cmd == 'h':
