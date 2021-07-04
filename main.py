@@ -55,6 +55,9 @@ def prompt():
 
 
 if __name__ == "__main__":
+    verbose = args.verbose
+    quiet = args.quiet 
+
     cmd : str
     
     currentDate = datetime.datetime.now()
@@ -62,7 +65,7 @@ if __name__ == "__main__":
     mondayDate = datetime.datetime.now() - datetime.timedelta(days=currentDate.weekday())
     filePath = "reports/report_" + mondayDate.strftime("%m_%d_%Y") + ".json"
 
-    print("filePath: " + filePath)
+    print("filePath: " + filePath) if verbose else None
 
     # Check if report is already created
     if (os.path.isfile(filePath)):
@@ -72,27 +75,33 @@ if __name__ == "__main__":
         report = StatusReport()
         report.setMondayDate(mondayDate)
 
-    prompt()
+    prompt() if not quiet else None
     while (1):
         cmd = input(">>> ")
         if cmd == 'q': break
+        
         elif cmd == 'w':
-            # print ("response for today")
+            print ("response for today") if verbose else None
             report.recordMessage(weekday)
-            print(report.messages)
-
+            print(report.messages) if verbose else None
+        
         elif cmd == 'p':
-            # print("response for previous days")
+            print("response for previous days") if verbose else None
             custom_day = int(input("0 - Monday\t1 - Tuesday\t2 - Wednesday\t3 - Thursday\t4 - Friday\t5 - Saturday\t6 - Sunday\nday: "))
             report.recordMessage(custom_day)
-            print(report.messages)
+            print(report.messages) if verbose else None
+        
         elif cmd == 'e':
-            print("emailing supervisor")
+            print("emailing supervisor") if verbose else None
+            print(report.messages)
+            report.next_step = "sent"
 
         elif cmd == 'f':
-            print("finishing documentation")
-        elif cmd == 'h':
+            print("finishing documentation") if verbose else None
+        
+        elif cmd == 'h' or cmd == 'help':
             prompt()
+        
         else:
             print("Invalid command")
     
