@@ -1,28 +1,33 @@
 # main.py
 #/usr/bin/python3
 
-from enum import Enum
-from eulxml import xmlmap
 import sys
 import argparse
 import datetime
-import xml.sax
+import json
+import os
+from pathlib import Path
 
-class StatusReport(xml.sax.ContentHandler):
-    def __init__(self) -> None:
+class StatusReport():
+    def __init__(self):
         self.monday_date : datetime
         self.messages = [ "", "", "", "", "", "", ""]
+        self.next_step = ""
         self.need_help = ""
         
     def hasMessage(self, day) -> bool:
         return len(self.messages[day]) > 0
 
-    def setDate(self) -> None:
-        self.monday_date = datetime.datetime.now()
+    def setMondayDate(self, date) -> None:
+        self.monday_date = date
 
     def recordMessage(self, day, message):
         assert(day < 8)
         self.messages[day] = message
+
+    def isFinished(self) -> bool:
+        return self.next_step != "" and self.need_help != ""
+
 
 
 arg_parser = argparse.ArgumentParser(description="Filling out the Weekly Status Report")
@@ -47,20 +52,22 @@ def prompt():
 
 
 if __name__ == "__main__":
-    #import from [xml/JSON] file
-
-    #evaluate command line arguments
-    # ARGUMENTS TO ADD:
-    # Add report of current date (Automatically add date of Monday and name)
-    # Add report of previous date
-    # Add comments of Planned accomplishments for next week
-    # Add comments of Requested Assistance
-
-    # Create Status Report object
-    report = StatusReport()
+    cmd : str
+    
     currentDate = datetime.datetime.now()
     weekday = currentDate.today().weekday()
-    cmd : str
+    mondayDate = datetime.datetime.now() - datetime.timedelta(days=currentDate.weekday())
+    filePath = "reports/report_" + mondayDate.strftime("%m_%d_%Y") + ".json"
+
+    print("filePath: " + filePath)
+
+    # Check if report is already created
+    if (os.path.isfile(filePath)):
+        with open(filePath, "r") as f:
+            report = json.load(f)
+    else:
+        report = StatusReport()
+        report.setMondayDate(mondayDate)
 
     prompt()
     while (1):
@@ -91,12 +98,10 @@ if __name__ == "__main__":
             print("finishing documentation")
         elif cmd == 'h':
             prompt()
-        
+        else:
+            print("Invalid command")
+    
 
-    # if args.message:
-    #     if args.verbose:
-    #         print("message")
-    #         print(currentDate.strftime("%x"))
-
-    # elif args.email:
-    #     if args.verbose: print("email")
+    # Save report
+    with open(filePath, "w") as f:
+        json.dump(report.__dict__, f, indent=4, default=str)
