@@ -4,7 +4,7 @@
 import sys
 import argparse
 import datetime
-import json
+import jsonpickle
 import os
 from pathlib import Path
 
@@ -21,9 +21,12 @@ class StatusReport():
     def setMondayDate(self, date) -> None:
         self.monday_date = date
 
-    def recordMessage(self, day, message):
-        assert(day < 8)
-        self.messages[day] = message
+    def recordMessage(self, day):
+        assert(day < 8 and day > -1)
+        if self.hasMessage(day): 
+            print("Already filled!")
+        else:  
+            self.messages[day] = input("enter reflection: ")
 
     def isFinished(self) -> bool:
         return self.next_step != "" and self.need_help != ""
@@ -55,7 +58,7 @@ if __name__ == "__main__":
     cmd : str
     
     currentDate = datetime.datetime.now()
-    weekday = currentDate.today().weekday()
+    weekday = currentDate.weekday()
     mondayDate = datetime.datetime.now() - datetime.timedelta(days=currentDate.weekday())
     filePath = "reports/report_" + mondayDate.strftime("%m_%d_%Y") + ".json"
 
@@ -64,7 +67,7 @@ if __name__ == "__main__":
     # Check if report is already created
     if (os.path.isfile(filePath)):
         with open(filePath, "r") as f:
-            report = json.load(f)
+            report = jsonpickle.decode(f.read())
     else:
         report = StatusReport()
         report.setMondayDate(mondayDate)
@@ -75,22 +78,14 @@ if __name__ == "__main__":
         if cmd == 'q': break
         elif cmd == 'w':
             # print ("response for today")
-            if report.hasMessage(weekday): 
-                print("Already filled!")
-            else: 
-                reflection = input("enter reflection: ")
-                report.recordMessage(weekday, reflection)
+            report.recordMessage(weekday)
             print(report.messages)
 
         elif cmd == 'p':
             # print("response for previous days")
-            custom_day = int(input("0 - Monday\n1 - Tuesday\n2 - Wednesday\n3 - Thursday\n4 - Friday\n5 - Saturday\n6 - Sunday\nday: "))
-            if report.hasMessage(custom_day): 
-                print("Already filled!")
-            else: 
-                reflection = input("enter reflection: ")
-                report.recordMessage(custom_day, reflection)
-        
+            custom_day = int(input("0 - Monday\t1 - Tuesday\t2 - Wednesday\t3 - Thursday\t4 - Friday\t5 - Saturday\t6 - Sunday\nday: "))
+            report.recordMessage(custom_day)
+            print(report.messages)
         elif cmd == 'e':
             print("emailing supervisor")
 
@@ -103,5 +98,7 @@ if __name__ == "__main__":
     
 
     # Save report
+    frozen = jsonpickle.encode(report)
+
     with open(filePath, "w") as f:
-        json.dump(report.__dict__, f, indent=4, default=str)
+        f.write(frozen)
