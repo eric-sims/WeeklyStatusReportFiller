@@ -23,10 +23,14 @@ class StatusReport():
 
     def recordMessage(self, day):
         assert(day < 8 and day > -1)
+        n : str = ""
         if self.hasMessage(day): 
-            print("Already filled!")
-        else:  
+            n = input("Already filled! Erase day? (y/n)")
+
+        if n == "y" or n == "Y" or n == "":
             self.messages[day] = input("enter reflection: ")
+        else:
+            return
 
     def isFinished(self) -> bool:
         return self.next_step != "" and self.need_help != ""
@@ -50,7 +54,7 @@ def prompt():
     f - Finish the document
     e - Email report to supervisor
     h - help
-    q - quit
+    q - quit (auto saves)
 ******************************************************""")
 
 
