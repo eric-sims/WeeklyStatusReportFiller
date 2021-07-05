@@ -11,7 +11,7 @@ from pathlib import Path
 class StatusReport():
     def __init__(self):
         self.monday_date : datetime
-        self.messages = [ "", "", "", "", "", "", ""]
+        self.messages = [ "", "", "", "", ""]
         self.next_step = ""
         self.need_help = ""
         
@@ -34,6 +34,45 @@ class StatusReport():
 
     def isFinished(self) -> bool:
         return self.next_step != "" and self.need_help != ""
+
+    def setNextStep(self) -> None:
+        n : str = ""
+        if self.next_step != "":
+            n = input("Already filled! Erase next step? (y/n)")
+        if n == "y" or n == "Y" or n == "":
+            self.next_step = input("enter next step: ")
+        else:
+            return
+        
+    def setNeedHelp(self) -> None:
+        n : str = ""
+        if self.need_help != "":
+            n = input("Already filled! Erase need help? (y/n)")
+        if n == "y" or n == "Y" or n == "":
+            self.need_help = input("enter need help: ")
+        else:
+            return
+
+    def generate(self) -> str:
+        if self.isFinished() == False:
+            print("Not finished!")
+            return ""
+        else:
+            return """Launchie Weekly Report
+Name: Eric Sims
+Date of Monday: """ + self.monday_date.strftime("%d %B %Y") + """
+
+What I've learned from specific activities and accomplishments throughout the week
+Monday: """ + self.messages[0] + """
+Tuesday: """ + self.messages[1] + """
+Wednesday: """ + self.messages[2] + """
+Thursday: """ + self.messages[3] + """
+Friday: """ + self.messages[4] + """
+
+Planned accomplishments for next week: """ + self.next_step + """
+
+Requested assistance: """ + self.need_help
+    
 
 # Command line arguments
 arg_parser = argparse.ArgumentParser(description="Filling out the Weekly Status Report")
@@ -63,13 +102,14 @@ cmd : str = ""
 currentDate = datetime.datetime.now()
 weekday = currentDate.weekday()
 mondayDate = datetime.datetime.now() - datetime.timedelta(days=currentDate.weekday())
-filePath = "reports/report_" + mondayDate.strftime("%m_%d_%Y") + ".json"
+filePathJSON = "data/report_" + mondayDate.strftime("%m_%d_%Y") + ".json"
+filePathTXT = "report/report_" + mondayDate.strftime("%m_%d_%Y") + ".txt"
 
-print("filePath: " + filePath) if verbose else None
+print("filePath: " + filePathJSON) if verbose else None
 
 # Check if report is already created
-if (os.path.isfile(filePath)):
-    with open(filePath, "r") as f:
+if (os.path.isfile(filePathJSON)):
+    with open(filePathJSON, "r") as f:
         report = jsonpickle.decode(f.read())
 else:
     # no previous report made, make a new one
@@ -90,18 +130,22 @@ while (1):
     
     elif cmd == 'p':
         print("response for previous days") if verbose else None
-        custom_day = int(input("0 - Monday\t1 - Tuesday\t2 - Wednesday\t3 - Thursday\t4 - Friday\t5 - Saturday\t6 - Sunday\nday: "))
+        custom_day = int(input("0 - Monday\t1 - Tuesday\t2 - Wednesday\t3 - Thursday\t4 - Friday\nday: "))
         report.recordMessage(custom_day)
         print(report.messages) if verbose else None
     
     elif cmd == 'e':
         print("emailing supervisor") if verbose else None
-        print(report.messages)
-        report.next_step = "sent"
+        txt = report.generate()
+        with open(filePathTXT, "w") as f:
+            f.write(txt)
+        
 
     elif cmd == 'f':
         print("finishing documentation") if verbose else None
-    
+        report.setNextStep()
+        report.setNeedHelp()
+
     elif cmd == 'h' or cmd == 'help':
         prompt()
     
@@ -112,7 +156,7 @@ while (1):
 # Save report
 frozen = jsonpickle.encode(report)
 
-with open(filePath, "w") as f:
+with open(filePathJSON, "w") as f:
     f.write(frozen)
 
 
