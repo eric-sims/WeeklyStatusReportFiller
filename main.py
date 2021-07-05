@@ -103,7 +103,7 @@ currentDate = datetime.datetime.now()
 weekday = currentDate.weekday()
 mondayDate = datetime.datetime.now() - datetime.timedelta(days=currentDate.weekday())
 filePathJSON = "data/report_" + mondayDate.strftime("%m_%d_%Y") + ".json"
-filePathTXT = "report/report_" + mondayDate.strftime("%m_%d_%Y") + ".txt"
+filePathTXT = "reports/report_" + mondayDate.strftime("%m_%d_%Y") + ".txt"
 
 print("filePath: " + filePathJSON) if verbose else None
 
