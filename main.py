@@ -1,46 +1,59 @@
 # main.py
 #/usr/bin/python3
 
-import sys
+#import sys
 import argparse
 import datetime
 import jsonpickle
 import os
-from pathlib import Path
+#from pathlib import Path
 
 class StatusReport():
     def __init__(self):
         self.monday_date : datetime
         self.messages = [ "", "", "", "", ""]
-        self.next_step = ""
+        self.next_week_goal = ""
         self.need_help = ""
+    
+    def overwrite(self, message) -> bool:
+        n : str = ""
+        if message != "":
+            n = input("Already filled: " + message + "\nErase? (y/n)")
         
-    def hasMessage(self, day) -> bool:
-        return len(self.messages[day]) > 0
-
+        n = n.lower().strip()
+        if n == "y" or n == "yes":
+            return True
+        else:
+            return False
+    
     def setMondayDate(self, date) -> None:
         self.monday_date = date
 
     def recordMessage(self, day):
         assert(day < 8 and day > -1)
-        n : str = ""
-        if self.hasMessage(day): 
-            n = input("Already filled! Erase day? (y/n)")
 
-        if n == "y" or n == "Y" or n == "":
+        if self.overwrite(self.messages[day]):
             self.messages[day] = input("enter reflection: ")
         else:
             return
 
-    def isFinished(self) -> bool:
-        return self.next_step != "" and self.need_help != ""
+    def recordMessage(self, day, message) -> None:
+        assert(day < 8 and day > -1)
 
-    def setNextStep(self) -> None:
+        if self.overwrite(self.messages[day]):
+            self.messages[day] = message
+        else:
+            return
+    
+    def isFinished(self) -> bool:
+        return self.next_week_goal != "" and self.need_help != ""
+
+    def setNextWeekGoal(self) -> None:
         n : str = ""
-        if self.next_step != "":
-            n = input("Already filled! Erase next step? (y/n)")
+        if self.next_week_goal != "":
+            n = input("Already filled! Erase? (y/n)")
         if n == "y" or n == "Y" or n == "":
-            self.next_step = input("enter next step: ")
+            self.next_week_goal = input("enter next step: ")
         else:
             return
         
@@ -69,15 +82,15 @@ Wednesday: """ + self.messages[2] + """
 Thursday: """ + self.messages[3] + """
 Friday: """ + self.messages[4] + """
 
-Planned accomplishments for next week: """ + self.next_step + """
+Planned accomplishments for next week: """ + self.next_week_goal + """
 
 Requested assistance: """ + self.need_help
     
 
 # Command line arguments
 arg_parser = argparse.ArgumentParser(description="Filling out the Weekly Status Report")
-arg_parser.add_argument("-m", "--message", help="Reflect on the day", action="store_true")
-arg_parser.add_argument("-e", "--email", help="Email to supervisor", action="store_true")
+arg_parser.add_argument("-m", "--message", type=str, help="Reflect on the day")
+arg_parser.add_argument("-e", "--email", help="Email to supervisor")
 
 group = arg_parser.add_mutually_exclusive_group()
 group.add_argument("-v", "--verbose", action="store_true")
@@ -116,41 +129,44 @@ else:
     report = StatusReport()
     report.setMondayDate(mondayDate)
 
-# INPUT EVENT LOOP
-prompt() if not quiet else None
-
-while (1):
-    cmd = input(">>> ")
-    if cmd == 'q': break
-    
-    elif cmd == 'w':
-        print ("response for today") if verbose else None
-        report.recordMessage(weekday)
-        print(report.messages) if verbose else None
-    
-    elif cmd == 'p':
-        print("response for previous days") if verbose else None
-        custom_day = int(input("0 - Monday\t1 - Tuesday\t2 - Wednesday\t3 - Thursday\t4 - Friday\nday: "))
-        report.recordMessage(custom_day)
-        print(report.messages) if verbose else None
-    
-    elif cmd == 'e':
-        print("emailing supervisor") if verbose else None
-        txt = report.generate()
-        with open(filePathTXT, "w") as f:
-            f.write(txt)
+if args.message:
+    report.recordMessage(weekday, args.message)
+    print("Recorded message for " + str(weekday)) if verbose else None
+else:
+    # INPUT EVENT LOOP
+    prompt() if not quiet else None
+    while (1):
+        cmd = input(">>> ")
+        if cmd == 'q': break
         
+        elif cmd == 'w':
+            print ("response for today") if verbose else None
+            report.recordMessage(weekday)
+            print(report.messages) if verbose else None
+        
+        elif cmd == 'p':
+            print("response for previous days") if verbose else None
+            custom_day = int(input("0 - Monday\t1 - Tuesday\t2 - Wednesday\t3 - Thursday\t4 - Friday\nday: "))
+            report.recordMessage(custom_day)
+            print(report.messages) if verbose else None
+        
+        elif cmd == 'e':
+            print("emailing supervisor") if verbose else None
+            txt = report.generate()
+            with open(filePathTXT, "w") as f:
+                f.write(txt)
+            
 
-    elif cmd == 'f':
-        print("finishing documentation") if verbose else None
-        report.setNextStep()
-        report.setNeedHelp()
+        elif cmd == 'f':
+            print("finishing documentation") if verbose else None
+            report.setNextWeekGoal()
+            report.setNeedHelp()
 
-    elif cmd == 'h' or cmd == 'help':
-        prompt()
-    
-    else:
-        print("Invalid command")
+        elif cmd == 'h' or cmd == 'help':
+            prompt()
+        
+        else:
+            print("Invalid command")
 
 
 # Save report
