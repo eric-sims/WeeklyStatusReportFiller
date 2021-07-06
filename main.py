@@ -15,16 +15,17 @@ class StatusReport():
         self.next_week_goal = ""
         self.need_help = ""
     
-    def overwrite(self, message) -> bool:
+    def overwrite(self, day) -> bool:
         n : str = ""
-        if message != "":
-            n = input("Already filled: " + message + "\nErase? (y/n)")
-        
+        if self.messages[day] != "":
+            n = input("Already filled: " + self.messages[day] + "\nErase? (y/n)")
+        else: return True
+
         n = n.lower().strip()
         if n == "y" or n == "yes":
             return True
-        else:
-            return False
+        return False
+        
     
     def setMondayDate(self, date) -> None:
         self.monday_date = date
@@ -32,17 +33,19 @@ class StatusReport():
     def recordMessage(self, day):
         assert(day < 8 and day > -1)
 
-        if self.overwrite(self.messages[day]):
+        if self.overwrite(day):
             self.messages[day] = input("enter reflection: ")
         else:
             return
 
     def recordMessage(self, day, message) -> None:
         assert(day < 8 and day > -1)
-
-        if self.overwrite(self.messages[day]):
+        print (message)
+        if self.overwrite(day):
             self.messages[day] = message
+            print("message written" + message)
         else:
+            print("message not written")
             return
     
     def isFinished(self) -> bool:
@@ -129,9 +132,9 @@ else:
     report = StatusReport()
     report.setMondayDate(mondayDate)
 
-if args.message:
-    report.recordMessage(weekday, args.message)
-    print("Recorded message for " + str(weekday)) if verbose else None
+if args.message != None:
+    report.recordMessage(weekday, str(args.message))
+    print("Recorded message for " + currentDate.strftime("%A"))
 else:
     # INPUT EVENT LOOP
     prompt() if not quiet else None
