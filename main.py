@@ -1,7 +1,7 @@
 # main.py
 #/usr/bin/python3
 
-#import sys
+import sys
 import argparse
 import datetime
 import jsonpickle
@@ -38,11 +38,14 @@ class StatusReport():
         else:
             return
 
-    def recordMessage(self, day, message) -> None:
+    def recordMessage(self, day, message = "") -> None:
         assert(day < 8 and day > -1)
         print (message)
         if self.overwrite(day):
-            self.messages[day] = message
+            if message != "":
+                self.messages[day] = message
+            else:
+                self.messages[day] = input("enter reflection: ") 
             print("message written" + message)
         else:
             print("message not written")
@@ -70,10 +73,6 @@ class StatusReport():
             return
 
     def generate(self) -> str:
-        if self.isFinished() == False:
-            print("Not finished!")
-            return ""
-        else:
             return """Launchie Weekly Report
 Name: Eric Sims
 Date of Monday: """ + self.monday_date.strftime("%d %B %Y") + """
@@ -93,7 +92,10 @@ Requested assistance: """ + self.need_help
 # Command line arguments
 arg_parser = argparse.ArgumentParser(description="Filling out the Weekly Status Report")
 arg_parser.add_argument("-m", "--message", type=str, help="Reflect on the day")
-arg_parser.add_argument("-e", "--email", help="Email to supervisor")
+arg_parser.add_argument("-e", "--email", action= 'store_true', help="Email to supervisor")
+arg_parser.add_argument("-g", "--goal", help="Goal for next week")
+arg_parser.add_argument("-n", "--need", help="Requesting help")
+arg_parser.add_argument("-d", "--display", action= 'store_true', help="Display report")
 
 group = arg_parser.add_mutually_exclusive_group()
 group.add_argument("-v", "--verbose", action="store_true")
@@ -135,6 +137,14 @@ else:
 if args.message != None:
     report.recordMessage(weekday, str(args.message))
     print("Recorded message for " + currentDate.strftime("%A"))
+elif args.display:
+    print(report.generate())
+elif args.goal != None:
+    report.nextweek_goal = args.goal
+    print("Set next week goal: " + report.next_week_goal) if verbose else None
+elif args.need != None:
+    report.need_help = args.need
+    print("Set need help: " + report.need_help) if verbose else None
 else:
     # INPUT EVENT LOOP
     prompt() if not quiet else None
